@@ -1,0 +1,2803 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NODE//ZERO - Hello Kitty Cyber Defense</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-main: #fce4ec;
+        --bg-panel: #fff0f5;
+        --bg-panel-dark: #1e1228;
+        --bg-grid: #1a1025;
+        --text-dark: #3a1a2e;
+        --text-light: #ffd1e8;
+        --text-cyan: #00e6b8;
+        --text-red: #ff4d6d;
+        --text-amber: #ffb800;
+        --border-pink: #ff8fbb;
+        --border-dark: #4a2a4e;
+        --node-safe: #2a1a3e;
+        --node-infected: #4a0a1a;
+        --node-critical: #8a0022;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+
+      body {
+        background-color: var(--bg-main);
+        background-image:
+          radial-gradient(
+            circle at 10% 20%,
+            rgba(255, 183, 213, 0.4) 0%,
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(255, 143, 187, 0.3) 0%,
+            transparent 30%
+          );
+        font-family: "VT323", monospace;
+        color: var(--text-dark);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+        position: relative;
+      }
+
+      body::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+          rgba(255, 255, 255, 0) 50%,
+          rgba(0, 0, 0, 0.05) 50%
+        );
+        z-index: 999;
+        background-size: 100% 4px;
+        pointer-events: none;
+      }
+
+      #game-container {
+        display: grid;
+        grid-template-columns: 320px 1fr 320px;
+        grid-template-rows: auto 1fr auto;
+        gap: 15px;
+        width: 98vw;
+        height: 96vh;
+        max-width: 1800px;
+        padding: 15px;
+        position: relative;
+        background: var(--bg-panel);
+        border: 3px solid var(--border-pink);
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(255, 143, 187, 0.4);
+      }
+
+      header {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 25px;
+        background: var(--bg-panel);
+        border: 2px solid var(--border-pink);
+        border-radius: 10px;
+        font-family: "Press Start 2P", cursive;
+        box-shadow: 0 4px 0 var(--border-pink);
+      }
+
+      .logo {
+        font-size: 1.2rem;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo span {
+        color: var(--border-pink);
+      }
+
+      .header-tabs {
+        display: flex;
+        gap: 10px;
+      }
+      .header-tab {
+        padding: 6px 15px;
+        border: 2px solid var(--border-pink);
+        border-radius: 5px;
+        background: #fff;
+        color: var(--text-dark);
+        font-family: "VT323", monospace;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .header-tab:hover {
+        background: var(--border-pink);
+        color: #fff;
+      }
+      .header-tab svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      .hud-stats {
+        display: flex;
+        gap: 20px;
+        font-size: 0.7rem;
+      }
+      .hud-item {
+        text-align: center;
+      }
+      .hud-item .label {
+        color: var(--border-pink);
+        font-size: 0.55rem;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .hud-item .value {
+        color: var(--text-dark);
+        font-size: 1rem;
+      }
+      .hud-item .value.danger {
+        color: var(--text-red);
+      }
+
+      .global-timer {
+        font-size: 1.4rem;
+        color: var(--text-red);
+        border: 2px solid var(--text-red);
+        padding: 4px 15px;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(255, 51, 85, 0.3);
+      }
+
+      .panel {
+        background: var(--bg-panel);
+        border: 2px solid var(--border-pink);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 0 var(--border-pink);
+      }
+
+      .panel-title {
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        border-bottom: 2px dashed var(--border-pink);
+        padding-bottom: 4px;
+        margin-bottom: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+      }
+      .panel-title svg {
+        width: 18px;
+        height: 18px;
+        fill: var(--border-pink);
+      }
+
+      #console-panel {
+        grid-row: 2 / 3;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+      }
+
+      #console {
+        flex: 1;
+        font-size: 0.9rem;
+        overflow-y: auto;
+        color: var(--text-light);
+        padding-right: 5px;
+        font-family: "VT323", monospace;
+        background: var(--bg-panel-dark);
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid var(--border-dark);
+        min-height: 0;
+      }
+      #console div {
+        margin-bottom: 2px;
+      }
+      #console .sys {
+        color: #a89bb5;
+      }
+      #console .warn {
+        color: var(--text-amber);
+      }
+      #console .crit {
+        color: var(--text-red);
+        font-weight: bold;
+      }
+      #console .success {
+        color: #00e6b8;
+      }
+
+      .kitty-console {
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        margin-top: auto;
+        position: relative;
+        box-shadow: 0 2px 0 var(--border-pink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .kitty-console svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--border-pink);
+        flex-shrink: 0;
+      }
+
+      .health-bar-container {
+        margin-top: auto;
+        border-top: 2px dashed var(--border-pink);
+        padding-top: 6px;
+        flex-shrink: 0;
+      }
+      .health-bar-label {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-dark);
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+      .health-bar-bg {
+        width: 100%;
+        height: 10px;
+        background: #fce4ec;
+        border-radius: 5px;
+        margin-top: 4px;
+        overflow: hidden;
+        border: 2px solid var(--border-pink);
+      }
+      #network-health-bar {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--border-pink), #ff8fbb);
+        transition: width 0.3s;
+      }
+
+      #network-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #network-grid {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        grid-template-rows: repeat(10, 1fr);
+        gap: 4px;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        max-height: 68vh;
+        background: var(--bg-grid);
+        border: 3px solid var(--border-pink);
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+      }
+
+      .node {
+        background-color: var(--node-safe);
+        border: 2px solid rgba(255, 143, 187, 0.3);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .node svg {
+        width: 60%;
+        height: 60%;
+        fill: currentColor;
+      }
+      .node:hover {
+        transform: scale(1.1);
+        z-index: 10;
+        box-shadow: 0 0 15px var(--border-pink);
+        border-color: #fff;
+      }
+
+      .node.firewall {
+        border-color: #00e6b8;
+        color: #00e6b8;
+      }
+      .node.server {
+        border-color: #ffb7d5;
+        color: #ffb7d5;
+      }
+      .node.database {
+        border-color: #ffb800;
+        color: #ffb800;
+      }
+      .node.router {
+        border-color: #00ccff;
+        color: #00ccff;
+      }
+      .node.power {
+        border-color: #ff00ff;
+        color: #ff00ff;
+      }
+      .node.mainframe {
+        border-color: #ffffff;
+        color: #ffffff;
+      }
+
+      .node.safe {
+        background-color: var(--node-safe);
+      }
+      .node.infected {
+        background-color: var(--node-infected);
+        border-color: var(--text-red);
+        animation: pulse-infected 1s infinite alternate;
+      }
+      .node.critical {
+        background-color: var(--node-critical);
+        border-color: var(--text-red);
+        animation: flicker-critical 0.3s infinite;
+      }
+      .node.destroyed {
+        background-color: #000;
+        border-color: #333;
+        color: #333;
+        cursor: not-allowed;
+      }
+      .node.stealth {
+        opacity: 0.3;
+      }
+      .node.selected {
+        box-shadow: 0 0 15px #fff;
+        border-color: #fff;
+        z-index: 5;
+      }
+
+      .side-panel {
+        grid-row: 2 / 3;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: auto;
+      }
+
+      .node-info-box {
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 0 var(--border-pink);
+      }
+      .node-info-box .type-tag {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        background: var(--border-pink);
+        color: #fff;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .node-info-box .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3px;
+      }
+      .node-info-box .stat-row span:last-child {
+        color: var(--text-dark);
+        font-weight: bold;
+      }
+
+      .btn-defuse {
+        width: 100%;
+        padding: 10px;
+        background: var(--border-pink);
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 5px;
+        text-transform: uppercase;
+        font-weight: bold;
+        box-shadow: 0 4px 0 #d46a96;
+      }
+      .btn-defuse:hover {
+        background: #ff9fc4;
+      }
+      .btn-defuse:active {
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+      .btn-defuse:disabled {
+        background: #ccc;
+        border-color: #ccc;
+        box-shadow: 0 4px 0 #999;
+        cursor: not-allowed;
+        color: #666;
+      }
+
+      .powerup-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .powerup {
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.8rem;
+        color: var(--text-dark);
+        box-shadow: 0 2px 0 var(--border-pink);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .powerup svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--border-pink);
+      }
+      .powerup:hover {
+        background: #fce4ec;
+      }
+      .powerup:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .powerup.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .powerup .count {
+        display: block;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        font-weight: bold;
+      }
+
+      #puzzle-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 240, 245, 0.95);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        border-radius: 15px;
+      }
+      #puzzle-overlay.active {
+        display: flex;
+      }
+
+      .puzzle-box {
+        background: #fff;
+        border: 3px solid var(--border-pink);
+        border-radius: 15px;
+        padding: 30px;
+        width: 650px;
+        max-width: 95%;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(255, 143, 187, 0.5);
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .puzzle-box h2 {
+        color: var(--text-dark);
+        font-family: "Press Start 2P", cursive;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+      }
+      .puzzle-box p {
+        color: var(--text-dark);
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+      }
+      .puzzle-timer {
+        font-size: 1.5rem;
+        color: var(--text-red);
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      .btn-submit {
+        padding: 10px 35px;
+        background: var(--border-pink);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 15px;
+        box-shadow: 0 4px 0 #d46a96;
+      }
+      .btn-submit:hover {
+        background: #ff9fc4;
+      }
+      .btn-submit:active {
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+
+      .binary-display {
+        font-family: "Press Start 2P", cursive;
+        font-size: 1.3rem;
+        letter-spacing: 4px;
+        color: var(--text-dark);
+        background: #fce4ec;
+        padding: 12px;
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        margin-bottom: 15px;
+        word-break: break-all;
+      }
+      .binary-input-area {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+      .binary-input-area input {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        text-align: center;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        color: var(--text-dark);
+        font-family: "VT323", monospace;
+        border-radius: 8px;
+      }
+      .binary-input-area input:focus {
+        outline: none;
+        border-color: var(--text-cyan);
+        box-shadow: 0 0 10px var(--text-cyan);
+      }
+
+      .signal-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .signal-track {
+        width: 80%;
+        height: 30px;
+        background: #fce4ec;
+        border: 2px solid var(--border-pink);
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+      }
+      .signal-target {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--text-cyan);
+        box-shadow: 0 0 10px var(--text-cyan);
+      }
+      .signal-slider {
+        -webkit-appearance: none;
+        width: 80%;
+        height: 15px;
+        background: var(--border-pink);
+        border-radius: 5px;
+        outline: none;
+      }
+      .signal-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 10px #fff;
+      }
+
+      .sequence-display {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 2rem;
+      }
+      .sequence-arrow {
+        opacity: 0.3;
+        transition: opacity 0.2s;
+        fill: var(--text-dark);
+      }
+      .sequence-arrow svg {
+        width: 40px;
+        height: 40px;
+      }
+      .sequence-arrow.active {
+        opacity: 1;
+        fill: var(--text-cyan);
+        filter: drop-shadow(0 0 10px var(--text-cyan));
+        transform: scale(1.2);
+      }
+      .sequence-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .sequence-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        color: var(--text-dark);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 0 var(--border-pink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .sequence-btn svg {
+        width: 30px;
+        height: 30px;
+        fill: var(--text-dark);
+      }
+      .sequence-btn:hover {
+        background: #fce4ec;
+      }
+      .sequence-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .sequence-btn.correct {
+        background: #00ff00;
+        border-color: #00ff00;
+      }
+      .sequence-btn.correct svg {
+        fill: #fff;
+      }
+
+      .circuit-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 60px);
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 15px;
+      }
+      .circuit-cell {
+        width: 60px;
+        height: 60px;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+        border-radius: 8px;
+      }
+      .circuit-cell svg {
+        width: 30px;
+        height: 30px;
+        fill: var(--text-dark);
+      }
+      .circuit-cell:hover {
+        background: #fce4ec;
+      }
+      .circuit-cell.input {
+        border-color: var(--text-cyan);
+      }
+      .circuit-cell.input svg {
+        fill: var(--text-cyan);
+      }
+      .circuit-cell.output {
+        border-color: var(--text-amber);
+      }
+      .circuit-cell.output svg {
+        fill: var(--text-amber);
+      }
+      .circuit-cell.connected {
+        background: rgba(0, 255, 204, 0.2);
+      }
+
+      .packet-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .packet-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 15px;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+      .packet-item .packet-id {
+        color: var(--text-cyan);
+        font-weight: bold;
+      }
+      .packet-item .packet-data {
+        color: var(--text-dark);
+      }
+      .packet-btn {
+        padding: 5px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+        font-size: 1rem;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+      }
+      .packet-btn:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .packet-btn.legit {
+        background: #00ff00;
+        color: #000;
+      }
+      .packet-btn.mal {
+        background: var(--text-red);
+        color: #fff;
+      }
+      .packet-btn:hover {
+        opacity: 0.9;
+      }
+
+      .code-fragments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 15px;
+      }
+      .code-fragment {
+        padding: 8px 15px;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        color: var(--text-dark);
+        font-family: "Press Start 2P", cursive;
+        font-size: 0.8rem;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 0 var(--border-pink);
+      }
+      .code-fragment:hover {
+        background: #fce4ec;
+      }
+      .code-fragment:active {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .code-fragment.selected {
+        background: var(--border-pink);
+        color: #fff;
+        border-color: var(--border-pink);
+      }
+      .code-target {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        min-height: 40px;
+      }
+      .code-target .code-fragment {
+        cursor: default;
+      }
+      .code-target .code-fragment:hover {
+        background: #fff;
+        color: var(--text-dark);
+      }
+
+      @keyframes pulse-infected {
+        0% {
+          background-color: var(--node-infected);
+          box-shadow: 0 0 5px var(--text-red);
+        }
+        100% {
+          background-color: #8a0022;
+          box-shadow: 0 0 20px var(--text-red);
+        }
+      }
+      @keyframes flicker-critical {
+        0% {
+          opacity: 1;
+          background-color: var(--node-critical);
+        }
+        50% {
+          opacity: 0.5;
+          background-color: #ff0000;
+        }
+        100% {
+          opacity: 1;
+          background-color: var(--node-critical);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+      .shake {
+        animation: shake 0.3s ease-in-out;
+      }
+
+      #overlay-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 240, 245, 0.97);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 15px;
+        text-align: center;
+        padding: 40px;
+      }
+      #overlay-screen h1 {
+        font-family: "Press Start 2P", cursive;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        color: var(--text-dark);
+      }
+      #overlay-screen p {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        max-width: 700px;
+        line-height: 1.5;
+        color: var(--text-dark);
+      }
+      #overlay-screen .btn-start {
+        margin-top: 20px;
+        padding: 12px 35px;
+        background: var(--border-pink);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-family: "Press Start 2P", cursive;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 0 #d46a96;
+      }
+      #overlay-screen .btn-start:hover {
+        background: #ff9fc4;
+      }
+      #overlay-screen .btn-start:active {
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+
+      .menu-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 600px;
+      }
+      .menu-btn {
+        padding: 15px;
+        background: #fff;
+        border: 2px solid var(--border-pink);
+        border-radius: 8px;
+        color: var(--text-dark);
+        font-family: "VT323", monospace;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 0 var(--border-pink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .menu-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--text-dark);
+      }
+      .menu-btn:hover {
+        background: #fce4ec;
+      }
+      .menu-btn:active {
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+
+      .achievement-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #fff;
+        border: 3px solid var(--text-amber);
+        border-radius: 8px;
+        padding: 15px 20px;
+        color: var(--text-dark);
+        font-size: 1rem;
+        z-index: 3000;
+        animation: slideIn 0.5s ease-out;
+        box-shadow: 0 5px 15px rgba(255, 204, 0, 0.5);
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 143, 187, 0.1);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-pink);
+        border-radius: 4px;
+      }
+
+      .svg-icon {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+      .svg-icon-lg {
+        width: 32px;
+        height: 32px;
+        fill: currentColor;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <header>
+        <div class="logo">
+          <svg
+            class="svg-icon-lg"
+            viewBox="0 0 100 100"
+            style="fill: var(--border-pink)"
+          >
+            <path
+              d="M50 20 C30 10, 10 30, 20 50 C10 70, 30 90, 50 80 C70 90, 90 70, 80 50 C90 30, 70 10, 50 20 Z"
+            />
+            <circle cx="50" cy="50" r="15" fill="#fff" />
+            <circle cx="45" cy="45" r="3" fill="#000" />
+            <circle cx="55" cy="45" r="3" fill="#000" />
+          </svg>
+          NODE<span>//</span>ZERO
+        </div>
+        <div class="header-tabs">
+          <div class="header-tab" onclick="startGame('campaign')">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> PLAY
+          </div>
+          <div class="header-tab" onclick="showMapSelect()">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"
+              />
+            </svg>
+            MAPS
+          </div>
+          <div class="header-tab" onclick="showAchievements()">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"
+              />
+            </svg>
+            ACHIEVEMENTS
+          </div>
+          <div class="header-tab" onclick="showSettings()">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+              />
+            </svg>
+            SETTINGS
+          </div>
+        </div>
+        <div class="hud-stats">
+          <div class="hud-item">
+            <span class="label">SCORE</span
+            ><span class="value" id="hud-score">00000</span>
+          </div>
+          <div class="hud-item">
+            <span class="label">BEST</span
+            ><span class="value" id="hud-best">00000</span>
+          </div>
+          <div class="hud-item">
+            <span class="label">LEVEL</span
+            ><span class="value" id="hud-level">1</span>
+          </div>
+          <div class="hud-item">
+            <span class="label">HEALTH</span
+            ><span class="value" id="hud-health">100%</span>
+          </div>
+          <div class="hud-item">
+            <span class="label">COMBO</span
+            ><span class="value" id="hud-combo">x1.0</span>
+          </div>
+        </div>
+        <div class="global-timer" id="global-timer">02:00</div>
+      </header>
+
+      <div class="panel" id="console-panel">
+        <div class="panel-title">
+          CONSOLE
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"
+            />
+          </svg>
+        </div>
+        <div id="console">
+          <div class="sys">> SYSTEM INITIALIZING...</div>
+          <div class="sys">> LOADING NETWORK MAP...</div>
+          <div class="sys">> 10x10 GRID ONLINE</div>
+          <div class="warn">> VIRUS SIGNATURE DETECTED</div>
+          <div class="crit">> THREAT LEVEL: MEDIUM</div>
+        </div>
+        <div class="kitty-console">
+          <svg viewBox="0 0 100 100">
+            <path
+              d="M50 20 C30 10, 10 30, 20 50 C10 70, 30 90, 50 80 C70 90, 90 70, 80 50 C90 30, 70 10, 50 20 Z"
+            />
+            <circle cx="50" cy="50" r="15" fill="#fff" />
+            <circle cx="45" cy="45" r="3" fill="#000" />
+            <circle cx="55" cy="45" r="3" fill="#000" />
+          </svg>
+          Stay focused, little hacker! You got this! ♡
+        </div>
+        <div class="health-bar-container">
+          <div class="health-bar-label">
+            <span>NETWORK HEALTH</span
+            ><span id="network-health-text">100%</span>
+          </div>
+          <div class="health-bar-bg">
+            <div id="network-health-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="network-container">
+        <div id="network-grid"></div>
+      </div>
+
+      <div class="side-panel">
+        <div class="panel">
+          <div class="panel-title">
+            CURRENT NODE
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              />
+            </svg>
+          </div>
+          <div class="node-info-box" id="node-info">
+            <div class="type-tag" id="node-type">SERVER</div>
+            <div class="stat-row">
+              <span>Status:</span>
+              <span id="node-status" style="color: var(--text-red)"
+                >INFECTED</span
+              >
+            </div>
+            <div class="stat-row">
+              <span>Infection:</span> <span id="node-infection">72%</span>
+            </div>
+            <div class="stat-row">
+              <span>Puzzle:</span> <span id="node-puzzle">Binary Match</span>
+            </div>
+          </div>
+          <button class="btn-defuse" id="btn-defuse" disabled>
+            DEFUSE NODE
+          </button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            POWER-UPS
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              />
+            </svg>
+          </div>
+          <div class="powerup-list">
+            <div class="powerup" id="pu-freeze" onclick="usePowerup('freeze')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M22 11h-4.17l3.24-3.24-1.41-1.42L15 11h-2V9l4.66-4.66-1.42-1.41L13 6.17V2h-2v4.17L7.76 2.93 6.34 4.34 11 9v2H9L4.34 6.34 2.93 7.76 6.17 11H2v2h4.17l-3.24 3.24 1.41 1.42L9 13h2v2l-4.66 4.66 1.42 1.41L11 17.83V22h2v-4.17l3.24 3.24 1.42-1.41L13 15v-2h2l4.66 4.66 1.41-1.42L17.83 13H22z"
+                />
+              </svg>
+              Freeze<span class="count" id="count-freeze">1</span>
+            </div>
+            <div class="powerup" id="pu-scan" onclick="usePowerup('scan')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                />
+              </svg>
+              Scan<span class="count" id="count-scan">1</span>
+            </div>
+            <div class="powerup" id="pu-patch" onclick="usePowerup('patch')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"
+                />
+              </svg>
+              Patch<span class="count" id="count-patch">1</span>
+            </div>
+            <div
+              class="powerup"
+              id="pu-overclock"
+              onclick="usePowerup('overclock')"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                />
+              </svg>
+              Overclock<span class="count" id="count-overclock">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            NODE TYPES
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              />
+            </svg>
+          </div>
+          <div
+            style="
+              font-size: 0.85rem;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 5px;
+            "
+          >
+            <div
+              style="
+                color: #00e6b8;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                />
+              </svg>
+              Firewall
+            </div>
+            <div
+              style="
+                color: #ffb7d5;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
+                />
+              </svg>
+              Server
+            </div>
+            <div
+              style="
+                color: #ffb800;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"
+                />
+              </svg>
+              Database
+            </div>
+            <div
+              style="
+                color: #00ccff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
+                />
+              </svg>
+              Router
+            </div>
+            <div
+              style="
+                color: #ff00ff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M7 2v11h3v9l7-12h-4l4-8z" />
+              </svg>
+              Power Core
+            </div>
+            <div
+              style="
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14zM6 7h5v2H6zm0 4h5v2H6zm0 4h5v2H6zm7-8h5v2h-5zm0 4h5v2h-5zm0 4h5v2h-5z"
+                />
+              </svg>
+              Mainframe
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            VIRUS VARIANTS
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              />
+            </svg>
+          </div>
+          <div
+            style="
+              font-size: 0.85rem;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+            "
+          >
+            <div
+              style="
+                color: #ff4d6d;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+              Fast Virus
+            </div>
+            <div
+              style="
+                color: #aa00ff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+              Stealth Virus
+            </div>
+            <div
+              style="
+                color: #ff5500;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+              Corruptor
+            </div>
+            <div
+              style="
+                color: #00e6b8;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "
+            >
+              <svg
+                style="width: 16px; height: 16px; fill: currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+              Replicator
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            ACHIEVEMENTS
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"
+              />
+            </svg>
+          </div>
+          <div
+            id="achievement-list"
+            style="
+              font-size: 0.8rem;
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              max-height: 150px;
+              overflow-y: auto;
+            "
+          ></div>
+        </div>
+      </div>
+
+      <div id="puzzle-overlay">
+        <div class="puzzle-box">
+          <h2 id="puzzle-title">BINARY MATCH</h2>
+          <p id="puzzle-desc">
+            Reproduce the binary sequence before the timer expires.
+          </p>
+          <div class="puzzle-timer" id="puzzle-timer">10.0s</div>
+          <div id="puzzle-content"></div>
+          <button class="btn-submit" id="btn-submit-puzzle">SUBMIT</button>
+        </div>
+      </div>
+
+      <div id="overlay-screen">
+        <h1 id="overlay-title" style="color: var(--border-pink)">NODE//ZERO</h1>
+        <p id="overlay-desc" style="color: var(--text-dark)">
+          UNKNOWN MALWARE DETECTED — NETWORK COLLAPSE IN 02:00
+        </p>
+        <p id="overlay-sub" style="color: var(--text-dark); font-size: 1rem">
+          Defend the network. Protect the Mainframe. Save the system.
+        </p>
+        <div class="menu-grid" id="main-menu">
+          <button class="menu-btn" onclick="startGame('campaign')">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+              />
+            </svg>
+            Campaign Mode
+          </button>
+          <button class="menu-btn" onclick="startGame('survival')">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+              />
+            </svg>
+            Survival Mode
+          </button>
+          <button class="menu-btn" onclick="startGame('daily')">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"
+              />
+            </svg>
+            Daily Challenge
+          </button>
+          <button class="menu-btn" onclick="showAchievements()">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"
+              />
+            </svg>
+            Achievements
+          </button>
+        </div>
+        <button class="btn-start" id="btn-start" style="display: none">
+          CONTINUE
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const GRID_SIZE = 10;
+      const TOTAL_NODES = GRID_SIZE * GRID_SIZE;
+
+      const state = {
+        isRunning: false,
+        isPaused: false,
+        mode: "campaign",
+        score: 0,
+        bestScore: parseInt(localStorage.getItem("hk_zero_best")) || 0,
+        level: 1,
+        health: 100,
+        timeRemaining: 120,
+        nodes: [],
+        selectedNode: null,
+        infectionInterval: null,
+        timerInterval: null,
+        combo: 0,
+        comboMultiplier: 1,
+        powerups: { freeze: 1, scan: 1, patch: 1, overclock: 1 },
+        freezeActive: false,
+        scanActive: false,
+        activePuzzle: null,
+        puzzleTimer: null,
+        puzzleTimeLeft: 0,
+        puzzleTarget: "",
+        puzzleData: null,
+        achievements:
+          JSON.parse(localStorage.getItem("hk_zero_achievements")) || {},
+        map: "corporate",
+        difficulty: 1,
+        nodesSaved: 0,
+        nodesLost: 0,
+        startTime: 0,
+        stealthNodes: [],
+      };
+
+      const NODE_TYPES = {
+        firewall: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>',
+          color: "#00e6b8",
+        },
+        server: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>',
+          color: "#ffb7d5",
+        },
+        database: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>',
+          color: "#ffb800",
+        },
+        router: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>',
+          color: "#00ccff",
+        },
+        power: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
+          color: "#ff00ff",
+        },
+        mainframe: {
+          icon: '<svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14zM6 7h5v2H6zm0 4h5v2H6zm0 4h5v2H6zm7-8h5v2h-5zm0 4h5v2h-5zm0 4h5v2h-5z"/></svg>',
+          color: "#ffffff",
+        },
+      };
+
+      const VIRUS_TYPES = {
+        fast: {
+          name: "Fast Virus",
+          color: "#ff4d6d",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+          spreadBonus: 2,
+        },
+        stealth: {
+          name: "Stealth Virus",
+          color: "#aa00ff",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+          spreadBonus: 1,
+        },
+        corruptor: {
+          name: "Corruptor",
+          color: "#ff5500",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+          spreadBonus: 1,
+        },
+        replicator: {
+          name: "Replicator",
+          color: "#00e6b8",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+          spreadBonus: 3,
+        },
+      };
+
+      const MAPS = {
+        corporate: {
+          name: "Corporate Network",
+          accent: "#ffb7d5",
+          bg: "#1a1025",
+        },
+        military: { name: "Military Grid", accent: "#00e6b8", bg: "#0a140d" },
+        banking: { name: "Banking System", accent: "#ffb800", bg: "#14100a" },
+        space: { name: "Space Station", accent: "#aa00ff", bg: "#0a0a14" },
+        smartcity: { name: "Smart City", accent: "#00ccff", bg: "#0a0d14" },
+        serverfarm: {
+          name: "Underground Server Farm",
+          accent: "#ff5500",
+          bg: "#140a0a",
+        },
+      };
+
+      const ACHIEVEMENTS = {
+        first_firewall: {
+          name: "First Firewall",
+          desc: "Defuse your first node",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>',
+        },
+        zero_casualties: {
+          name: "Zero Casualties",
+          desc: "Win a level without losing a node",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+        },
+        speed_demon: {
+          name: "Speed Demon",
+          desc: "Solve a puzzle in under 3 seconds",
+          icon: '<svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
+        },
+        network_guardian: {
+          name: "Network Guardian",
+          desc: "Reach 100% network health after being below 20%",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>',
+        },
+        binary_beast: {
+          name: "Binary Beast",
+          desc: "Solve 10 binary puzzles",
+          icon: '<svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7h2v10H7V7zm4 0h6v2h-6V7zm0 4h6v2h-6v-2zm0 4h6v2h-6v-2z"/></svg>',
+        },
+        system_overload: {
+          name: "System Overload",
+          desc: "Reach level 10 in survival mode",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+        },
+        combo_master: {
+          name: "Combo Master",
+          desc: "Reach a x5 combo multiplier",
+          icon: '<svg viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>',
+        },
+        perfect_run: {
+          name: "Perfect Run",
+          desc: "Complete a campaign level without failing a puzzle",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+        },
+        virus_hunter: {
+          name: "Virus Hunter",
+          desc: "Defuse 50 nodes total",
+          icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>',
+        },
+        survivor: {
+          name: "Survivor",
+          desc: "Survive 5 minutes in survival mode",
+          icon: '<svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>',
+        },
+      };
+
+      let binaryPuzzleCount = 0;
+      let totalDefused = 0;
+      let currentComboMax = 0;
+
+      function initGame() {
+        document.getElementById("hud-best").textContent = String(
+          state.bestScore,
+        ).padStart(5, "0");
+        updateAchievementList();
+        showMainMenu();
+      }
+
+      function showMainMenu() {
+        const overlay = document.getElementById("overlay-screen");
+        overlay.style.display = "flex";
+        document.getElementById("overlay-title").textContent = "NODE//ZERO";
+        document.getElementById("overlay-title").style.color =
+          "var(--border-pink)";
+        document.getElementById("overlay-desc").textContent =
+          "UNKNOWN MALWARE DETECTED — NETWORK COLLAPSE IN 02:00";
+        document.getElementById("overlay-sub").textContent =
+          "Defend the network. Protect the Mainframe. Save the system.";
+        document.getElementById("main-menu").style.display = "grid";
+        document.getElementById("btn-start").style.display = "none";
+        document.getElementById("main-menu").innerHTML = `
+        <button class="menu-btn" onclick="startGame('campaign')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg> Campaign Mode
+        </button>
+        <button class="menu-btn" onclick="startGame('survival')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg> Survival Mode
+        </button>
+        <button class="menu-btn" onclick="startGame('daily')">
+            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg> Daily Challenge
+        </button>
+        <button class="menu-btn" onclick="showAchievements()">
+            <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg> Achievements
+        </button>
+    `;
+      }
+
+      function showAchievements() {
+        const overlay = document.getElementById("overlay-screen");
+        document.getElementById("overlay-title").textContent = "ACHIEVEMENTS";
+        document.getElementById("overlay-title").style.color =
+          "var(--text-amber)";
+        let html =
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:800px;width:100%;">';
+        for (const [key, ach] of Object.entries(ACHIEVEMENTS)) {
+          const unlocked = state.achievements[key];
+          html += `<div style="padding:10px;border:2px solid ${unlocked ? "var(--text-amber)" : "#ccc"};border-radius:8px;opacity:${unlocked ? 1 : 0.5};text-align:left;background:#fff;box-shadow:0 2px 0 #ccc; display:flex; align-items:center; gap:10px;">
+            <svg style="width:24px;height:24px;fill:${unlocked ? "var(--text-amber)" : "#ccc"};" viewBox="0 0 24 24">${ach.icon.replace('<svg viewBox="0 0 24 24">', "").replace("</svg>", "")}</svg>
+            <div>
+                <div style="font-size:1.1rem;color:var(--text-dark);">${ach.name}</div>
+                <div style="font-size:0.8rem;color:#666;">${ach.desc}</div>
+                <div style="font-size:0.7rem;color:${unlocked ? "var(--text-amber)" : "#999"};font-weight:bold;">${unlocked ? "✓ UNLOCKED" : "LOCKED"}</div>
+            </div>
+        </div>`;
+        }
+        html += "</div>";
+        document.getElementById("overlay-desc").innerHTML = html;
+        document.getElementById("overlay-sub").textContent = "";
+        document.getElementById("main-menu").style.display = "none";
+        document.getElementById("btn-start").style.display = "block";
+        document.getElementById("btn-start").textContent = "BACK";
+        document.getElementById("btn-start").onclick = showMainMenu;
+      }
+
+      function showMapSelect() {
+        const overlay = document.getElementById("overlay-screen");
+        document.getElementById("overlay-title").textContent = "SELECT MAP";
+        document.getElementById("overlay-title").style.color =
+          "var(--border-pink)";
+        let html =
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;max-width:700px;width:100%;">';
+        for (const [key, map] of Object.entries(MAPS)) {
+          html += `<div class="menu-btn" onclick="selectMap('${key}')" style="text-align:center; flex-direction:column;">
+            <div style="font-size:1.2rem;color:${map.accent};">${map.name}</div>
+            <div style="font-size:0.8rem;color:#666;">${key.toUpperCase()}</div>
+        </div>`;
+        }
+        html += "</div>";
+        document.getElementById("overlay-desc").innerHTML = html;
+        document.getElementById("overlay-sub").textContent =
+          "Click a map to change the visual theme.";
+        document.getElementById("main-menu").style.display = "none";
+        document.getElementById("btn-start").style.display = "block";
+        document.getElementById("btn-start").textContent = "BACK";
+        document.getElementById("btn-start").onclick = showMainMenu;
+      }
+
+      function selectMap(key) {
+        state.map = key;
+        document.documentElement.style.setProperty("--bg-grid", MAPS[key].bg);
+        document.documentElement.style.setProperty(
+          "--border-pink",
+          MAPS[key].accent,
+        );
+        showMainMenu();
+      }
+
+      function showSettings() {
+        showToast("⚙️ Settings coming soon!");
+      }
+
+      function startGame(mode) {
+        state.mode = mode;
+        state.isRunning = true;
+        state.score = 0;
+        state.health = 100;
+        state.timeRemaining = mode === "survival" ? 9999 : 120;
+        state.level = 1;
+        state.combo = 0;
+        state.comboMultiplier = 1;
+        state.nodes = [];
+        state.selectedNode = null;
+        state.powerups = { freeze: 1, scan: 1, patch: 1, overclock: 1 };
+        state.freezeActive = false;
+        state.scanActive = false;
+        state.nodesSaved = 0;
+        state.nodesLost = 0;
+        state.stealthNodes = [];
+        state.startTime = Date.now();
+        currentComboMax = 0;
+
+        if (mode === "daily") {
+          const seed = new Date().toISOString().slice(0, 10);
+          state.dailySeed = seed
+            .split("")
+            .reduce((a, b) => a + b.charCodeAt(0), 0);
+        }
+
+        document.getElementById("overlay-screen").style.display = "none";
+        document.getElementById("main-menu").style.display = "grid";
+        updateHUD();
+        generateGrid();
+        startTimers();
+        logToConsole(`> MODE: ${mode.toUpperCase()}`, "sys");
+        logToConsole("> SYSTEM ONLINE. DEFENSE PROTOCOLS ACTIVE.", "sys");
+        logToConsole("> SCANNING FOR VIRUS SIGNATURES...", "warn");
+      }
+
+      function generateGrid() {
+        const gridEl = document.getElementById("network-grid");
+        gridEl.innerHTML = "";
+        state.nodes = [];
+
+        for (let i = 0; i < TOTAL_NODES; i++) {
+          const node = {
+            id: i,
+            type: getRandomNodeType(),
+            status: "safe",
+            infection: 0,
+            virusType: getRandomVirusType(),
+            neighbors: getNeighbors(i),
+            isStealth: false,
+          };
+          state.nodes.push(node);
+
+          const el = document.createElement("div");
+          el.className = `node ${node.type} ${node.status}`;
+          el.id = `node-${i}`;
+          el.innerHTML = NODE_TYPES[node.type].icon;
+          el.onclick = () => selectNode(i);
+          gridEl.appendChild(el);
+        }
+
+        for (let i = 0; i < 3; i++)
+          infectNode(Math.floor(Math.random() * TOTAL_NODES));
+      }
+
+      function getRandomNodeType() {
+        const types = Object.keys(NODE_TYPES);
+        const weights = [0.1, 0.4, 0.15, 0.15, 0.1, 0.1];
+        const r = Math.random();
+        let sum = 0;
+        for (let i = 0; i < types.length; i++) {
+          sum += weights[i];
+          if (r <= sum) return types[i];
+        }
+        return "server";
+      }
+
+      function getRandomVirusType() {
+        const types = Object.keys(VIRUS_TYPES);
+        return types[Math.floor(Math.random() * types.length)];
+      }
+
+      function getNeighbors(id) {
+        const row = Math.floor(id / GRID_SIZE);
+        const col = id % GRID_SIZE;
+        const neighbors = [];
+        const dirs = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        for (const [dr, dc] of dirs) {
+          const nr = row + dr,
+            nc = col + dc;
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE)
+            neighbors.push(nr * GRID_SIZE + nc);
+        }
+        return neighbors;
+      }
+
+      function startTimers() {
+        if (state.timerInterval) clearInterval(state.timerInterval);
+        if (state.infectionInterval) clearInterval(state.infectionInterval);
+
+        state.timerInterval = setInterval(() => {
+          if (!state.isRunning || state.isPaused) return;
+          if (state.mode === "survival") {
+            state.timeRemaining = 9999;
+          } else {
+            const hasPowerCore = state.nodes.some(
+              (n) => n.type === "power" && n.status === "safe",
+            );
+            state.timeRemaining -= hasPowerCore ? 0.5 : 1;
+            if (state.timeRemaining <= 0) {
+              state.timeRemaining = 0;
+              endGame(false);
+            }
+          }
+          updateHUD();
+        }, 1000);
+
+        const baseInterval = state.mode === "survival" ? 2500 : 2000;
+        state.infectionInterval = setInterval(
+          () => {
+            if (!state.isRunning || state.isPaused || state.freezeActive)
+              return;
+            spreadInfection();
+          },
+          Math.max(500, baseInterval - state.level * 100),
+        );
+      }
+
+      function spreadInfection() {
+        const infectedNodes = state.nodes.filter(
+          (n) => n.status === "infected" || n.status === "critical",
+        );
+        if (infectedNodes.length === 0) return;
+
+        const source =
+          infectedNodes[Math.floor(Math.random() * infectedNodes.length)];
+        const virus = VIRUS_TYPES[source.virusType];
+        const spreadCount = virus.spreadBonus;
+
+        for (let s = 0; s < spreadCount; s++) {
+          if (source.neighbors.length === 0) break;
+          const targetId =
+            source.neighbors[
+              Math.floor(Math.random() * source.neighbors.length)
+            ];
+          const target = state.nodes[targetId];
+          if (target.status === "safe") {
+            infectNode(targetId);
+            if (source.virusType === "stealth") {
+              target.isStealth = true;
+              updateNodeElement(targetId);
+            }
+          } else if (target.status === "infected") {
+            target.infection += 10;
+            if (target.infection >= 100) makeCritical(targetId);
+            updateNodeElement(targetId);
+          }
+        }
+
+        if (source.virusType === "corruptor") {
+          source.neighbors.forEach((nid) => {
+            const n = state.nodes[nid];
+            if (n.status === "safe") n.infection += 5;
+          });
+        }
+        if (source.virusType === "replicator" && Math.random() < 0.3) {
+          const newTarget = Math.floor(Math.random() * TOTAL_NODES);
+          if (state.nodes[newTarget].status === "safe") infectNode(newTarget);
+        }
+      }
+
+      function infectNode(id) {
+        const node = state.nodes[id];
+        if (node.status === "destroyed") return;
+        node.status = "infected";
+        node.infection = 20;
+        updateNodeElement(id);
+        logToConsole(`> INTRUSION DETECTED! NODE ${id} COMPROMISED`, "crit");
+        playSound("infect");
+        state.health -= 2;
+        if (state.health <= 0) endGame(false);
+        updateHUD();
+        const el = document.getElementById(`node-${id}`);
+        el.classList.add("shake");
+        setTimeout(() => el.classList.remove("shake"), 300);
+      }
+
+      function makeCritical(id) {
+        const node = state.nodes[id];
+        node.status = "critical";
+        node.infection = 100;
+        updateNodeElement(id);
+        logToConsole(`> WARNING: NODE ${id} CRITICAL!`, "crit");
+        playSound("warn");
+      }
+
+      function destroyNode(id) {
+        const node = state.nodes[id];
+        node.status = "destroyed";
+        node.infection = 100;
+        updateNodeElement(id);
+        logToConsole(`> NODE ${id} DESTROYED.`, "crit");
+        state.nodesLost++;
+        let damage = 10;
+        if (node.type === "mainframe") damage = 100;
+        if (node.type === "power") damage = 20;
+        state.health -= damage;
+        if (state.health <= 0) endGame(false);
+        updateHUD();
+      }
+
+      function updateNodeElement(id) {
+        const node = state.nodes[id];
+        const el = document.getElementById(`node-${id}`);
+        if (!el) return;
+        el.className = `node ${node.type} ${node.status}`;
+        if (node.isStealth && node.status === "infected")
+          el.classList.add("stealth");
+        if (node.status === "infected")
+          el.style.opacity = 1 - node.infection / 200;
+        else if (node.status === "critical") el.style.opacity = 1;
+        else if (node.status === "destroyed") {
+          el.innerHTML =
+            '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
+          el.style.opacity = 1;
+        }
+      }
+
+      function selectNode(id) {
+        if (!state.isRunning || state.isPaused) return;
+        const node = state.nodes[id];
+        if (node.status === "destroyed" || node.status === "safe") return;
+        state.selectedNode = id;
+        document.getElementById("node-type").textContent =
+          node.type.toUpperCase();
+        document.getElementById("node-status").textContent =
+          node.status.toUpperCase();
+        document.getElementById("node-status").style.color =
+          node.status === "critical" ? "var(--text-red)" : "var(--text-amber)";
+        document.getElementById("node-infection").textContent =
+          `${Math.floor(node.infection)}%`;
+        document.getElementById("node-puzzle").textContent = getPuzzleName();
+        document.getElementById("btn-defuse").disabled = false;
+        document
+          .querySelectorAll(".node")
+          .forEach((n) => n.classList.remove("selected"));
+        document.getElementById(`node-${id}`).classList.add("selected");
+      }
+
+      function getPuzzleName() {
+        const puzzles = [
+          "Binary Match",
+          "Signal Alignment",
+          "Sequence Override",
+          "Circuit Routing",
+          "Packet Sorting",
+          "Code Fragment",
+        ];
+        return puzzles[Math.floor(Math.random() * puzzles.length)];
+      }
+
+      document.getElementById("btn-defuse").onclick = () => {
+        if (state.selectedNode !== null) openPuzzle(state.selectedNode);
+      };
+
+      function openPuzzle(nodeId) {
+        state.isPaused = true;
+        state.activePuzzle = nodeId;
+        const overlay = document.getElementById("puzzle-overlay");
+        overlay.classList.add("active");
+        const puzzleTypes = [
+          "binary",
+          "signal",
+          "sequence",
+          "circuit",
+          "packet",
+          "code",
+        ];
+        const puzzleType =
+          puzzleTypes[Math.floor(Math.random() * puzzleTypes.length)];
+        let timeLimit = 10;
+        if (state.mode === "survival")
+          timeLimit = Math.max(4, 10 - Math.floor(state.level / 3));
+        if (state.level > 3) timeLimit = Math.max(5, timeLimit - 2);
+        state.puzzleTimeLeft = timeLimit;
+        document.getElementById("puzzle-timer").textContent =
+          timeLimit.toFixed(1) + "s";
+        document.getElementById("puzzle-timer").style.color = "var(--text-red)";
+        document.getElementById("puzzle-timer").style.animation = "none";
+
+        if (puzzleType === "binary") generateBinaryPuzzle();
+        else if (puzzleType === "signal") generateSignalPuzzle();
+        else if (puzzleType === "sequence") generateSequencePuzzle();
+        else if (puzzleType === "circuit") generateCircuitPuzzle();
+        else if (puzzleType === "packet") generatePacketPuzzle();
+        else if (puzzleType === "code") generateCodePuzzle();
+
+        if (state.puzzleTimer) clearInterval(state.puzzleTimer);
+        state.puzzleTimer = setInterval(() => {
+          state.puzzleTimeLeft -= 0.1;
+          if (state.puzzleTimeLeft <= 0) {
+            state.puzzleTimeLeft = 0;
+            failPuzzle();
+          }
+          document.getElementById("puzzle-timer").textContent =
+            state.puzzleTimeLeft.toFixed(1) + "s";
+          if (state.puzzleTimeLeft < 3) {
+            document.getElementById("puzzle-timer").style.color =
+              "var(--text-red)";
+            document.getElementById("puzzle-timer").style.animation =
+              "flicker-critical 0.2s infinite";
+          }
+        }, 100);
+      }
+
+      function generateBinaryPuzzle() {
+        document.getElementById("puzzle-title").textContent = "BINARY MATCH";
+        document.getElementById("puzzle-desc").textContent =
+          "Reproduce the binary sequence before the timer expires.";
+        const length = 5 + Math.min(5, Math.floor(state.level / 2));
+        let target = "";
+        for (let i = 0; i < length; i++)
+          target += Math.random() > 0.5 ? "1" : "0";
+        state.puzzleTarget = target;
+        state.puzzleData = { type: "binary", target };
+        let html = `<div class="binary-display">${target}</div><div class="binary-input-area">`;
+        for (let i = 0; i < length; i++)
+          html += `<input type="text" maxlength="1" inputmode="numeric" pattern="[0-1]" autocomplete="off" id="bin-input-${i}">`;
+        html += "</div>";
+        document.getElementById("puzzle-content").innerHTML = html;
+        for (let i = 0; i < length; i++) {
+          const inp = document.getElementById(`bin-input-${i}`);
+          inp.addEventListener("input", (e) => {
+            if (e.target.value.length === 1 && i < length - 1)
+              document.getElementById(`bin-input-${i + 1}`).focus();
+          });
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && e.target.value === "" && i > 0)
+              document.getElementById(`bin-input-${i - 1}`).focus();
+          });
+        }
+        document.getElementById("bin-input-0").focus();
+      }
+
+      function generateSignalPuzzle() {
+        document.getElementById("puzzle-title").textContent =
+          "SIGNAL ALIGNMENT";
+        document.getElementById("puzzle-desc").textContent =
+          "Move the slider to match the target frequency.";
+        const targetPos = 20 + Math.random() * 60;
+        state.puzzleData = { type: "signal", target: targetPos, current: 50 };
+        const html = `<div class="signal-container"><div class="signal-track"><div class="signal-target" style="left: ${targetPos}%;"></div></div><input type="range" class="signal-slider" id="signal-slider" min="0" max="100" value="50"><div style="color:var(--text-dark);font-size:1.2rem;font-weight:bold;" id="signal-value">50</div></div>`;
+        document.getElementById("puzzle-content").innerHTML = html;
+        const slider = document.getElementById("signal-slider");
+        slider.addEventListener("input", (e) => {
+          const val = parseInt(e.target.value);
+          state.puzzleData.current = val;
+          document.getElementById("signal-value").textContent = val;
+        });
+      }
+
+      function generateSequencePuzzle() {
+        document.getElementById("puzzle-title").textContent =
+          "SEQUENCE OVERRIDE";
+        document.getElementById("puzzle-desc").textContent =
+          "Watch the sequence, then reproduce it.";
+        const length = 3 + Math.min(3, Math.floor(state.level / 2));
+        const symbols = [
+          {
+            char: "⬆",
+            svg: '<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>',
+          },
+          {
+            char: "⬇",
+            svg: '<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>',
+          },
+          {
+            char: "⬅",
+            svg: '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>',
+          },
+          {
+            char: "➡",
+            svg: '<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>',
+          },
+        ];
+        const sequence = [];
+        for (let i = 0; i < length; i++)
+          sequence.push(symbols[Math.floor(Math.random() * symbols.length)]);
+        state.puzzleData = {
+          type: "sequence",
+          sequence,
+          input: [],
+          playing: true,
+        };
+
+        let html = `<div class="sequence-display" id="sequence-display">`;
+        sequence.forEach(
+          (s, i) =>
+            (html += `<span class="sequence-arrow" id="seq-arrow-${i}">${s.svg}</span>`),
+        );
+        html += `</div><div class="sequence-inputs" id="sequence-inputs" style="display:none;">`;
+        symbols.forEach(
+          (s) =>
+            (html += `<button class="sequence-btn" data-symbol="${s.char}">${s.svg}</button>`),
+        );
+        html += `</div>`;
+        document.getElementById("puzzle-content").innerHTML = html;
+
+        let i = 0;
+        const playInterval = setInterval(() => {
+          if (i > 0)
+            document
+              .getElementById(`seq-arrow-${i - 1}`)
+              .classList.remove("active");
+          if (i >= sequence.length) {
+            clearInterval(playInterval);
+            setTimeout(() => {
+              document.getElementById("sequence-display").style.display =
+                "none";
+              document.getElementById("sequence-inputs").style.display = "flex";
+              state.puzzleData.playing = false;
+            }, 500);
+            return;
+          }
+          document.getElementById(`seq-arrow-${i}`).classList.add("active");
+          playSound("beep");
+          i++;
+        }, 700);
+
+        document.querySelectorAll(".sequence-btn").forEach((btn) => {
+          btn.onclick = () => {
+            if (state.puzzleData.playing) return;
+            const sym = btn.dataset.symbol;
+            state.puzzleData.input.push(sym);
+            btn.classList.add("correct");
+            if (state.puzzleData.input.length === sequence.length) {
+              if (
+                state.puzzleData.input.join("") ===
+                sequence.map((s) => s.char).join("")
+              )
+                successPuzzle();
+              else failPuzzle();
+            }
+          };
+        });
+      }
+
+      function generateCircuitPuzzle() {
+        document.getElementById("puzzle-title").textContent = "CIRCUIT ROUTING";
+        document.getElementById("puzzle-desc").textContent =
+          "Rotate the circuit pieces to connect input to output.";
+        const gridSize = 3;
+        const cells = [];
+        for (let i = 0; i < gridSize * gridSize; i++)
+          cells.push({
+            rotation: Math.floor(Math.random() * 4),
+            type: "corner",
+          });
+        cells[0] = { rotation: 0, type: "input" };
+        cells[gridSize * gridSize - 1] = { rotation: 0, type: "output" };
+        state.puzzleData = { type: "circuit", cells, gridSize };
+
+        let html = `<div class="circuit-grid" id="circuit-grid">`;
+        cells.forEach((c, i) => {
+          const cls =
+            c.type === "input" ? "input" : c.type === "output" ? "output" : "";
+          html += `<div class="circuit-cell ${cls}" data-index="${i}" style="transform: rotate(${c.rotation * 90}deg);">`;
+          if (c.type === "input")
+            html += '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+          else if (c.type === "output")
+            html +=
+              '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>';
+          else
+            html +=
+              '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
+          html += `</div>`;
+        });
+        html += `</div>`;
+        document.getElementById("puzzle-content").innerHTML = html;
+
+        document.querySelectorAll(".circuit-cell").forEach((cell) => {
+          cell.onclick = () => {
+            const idx = parseInt(cell.dataset.index);
+            if (
+              state.puzzleData.cells[idx].type === "input" ||
+              state.puzzleData.cells[idx].type === "output"
+            )
+              return;
+            state.puzzleData.cells[idx].rotation =
+              (state.puzzleData.cells[idx].rotation + 1) % 4;
+            cell.style.transform = `rotate(${state.puzzleData.cells[idx].rotation * 90}deg)`;
+          };
+        });
+      }
+
+      function generatePacketPuzzle() {
+        document.getElementById("puzzle-title").textContent = "PACKET SORTING";
+        document.getElementById("puzzle-desc").textContent =
+          "Identify which packets are legitimate and which are malicious.";
+        const packetCount = 4 + Math.min(4, Math.floor(state.level / 2));
+        const packets = [];
+        for (let i = 0; i < packetCount; i++) {
+          const isMalicious = Math.random() < 0.5;
+          const id = Math.floor(Math.random() * 9000) + 1000;
+          const data = `0x${Math.floor(Math.random() * 16777215)
+            .toString(16)
+            .toUpperCase()
+            .padStart(6, "0")}`;
+          packets.push({ id, data, isMalicious, resolved: false });
+        }
+        state.puzzleData = { type: "packet", packets };
+        let html = `<div class="packet-list" id="packet-list">`;
+        packets.forEach((p, i) => {
+          html += `<div class="packet-item" id="packet-${i}">
+            <span class="packet-id">#${p.id}</span>
+            <span class="packet-data">${p.data}</span>
+            <div>
+                <button class="packet-btn legit" onclick="resolvePacket(${i}, false)">LEGIT</button>
+                <button class="packet-btn mal" onclick="resolvePacket(${i}, true)">MAL</button>
+            </div>
+        </div>`;
+        });
+        html += `</div>`;
+        document.getElementById("puzzle-content").innerHTML = html;
+      }
+
+      function resolvePacket(index, isMalicious) {
+        if (!state.puzzleData || state.puzzleData.type !== "packet") return;
+        const p = state.puzzleData.packets[index];
+        if (p.resolved) return;
+        p.resolved = true;
+        const el = document.getElementById(`packet-${index}`);
+        if (p.isMalicious === isMalicious) {
+          el.style.borderColor = "#00ff00";
+          el.style.background = "rgba(0,255,0,0.1)";
+          p.correct = true;
+        } else {
+          el.style.borderColor = "var(--text-red)";
+          el.style.background = "rgba(255,51,85,0.1)";
+          p.correct = false;
+        }
+        const allResolved = state.puzzleData.packets.every((p) => p.resolved);
+        if (allResolved) {
+          const allCorrect = state.puzzleData.packets.every((p) => p.correct);
+          setTimeout(() => {
+            if (allCorrect) successPuzzle();
+            else failPuzzle();
+          }, 500);
+        }
+      }
+
+      function generateCodePuzzle() {
+        document.getElementById("puzzle-title").textContent = "CODE FRAGMENT";
+        document.getElementById("puzzle-desc").textContent =
+          "Rearrange the fragments into the correct sequence.";
+        const fragmentCount = 3 + Math.min(3, Math.floor(state.level / 2));
+        const fragments = [];
+        for (let i = 0; i < fragmentCount; i++)
+          fragments.push(
+            `0x${Math.floor(Math.random() * 255)
+              .toString(16)
+              .toUpperCase()
+              .padStart(2, "0")}`,
+          );
+        const correctOrder = [...fragments];
+        const shuffled = [...fragments].sort(() => Math.random() - 0.5);
+        state.puzzleData = {
+          type: "code",
+          correctOrder,
+          currentOrder: [],
+          shuffled,
+        };
+        let html = `<div class="code-target" id="code-target"></div><div class="code-fragments" id="code-fragments">`;
+        shuffled.forEach(
+          (f, i) =>
+            (html += `<div class="code-fragment" data-frag="${f}" data-index="${i}">${f}</div>`),
+        );
+        html += `</div>`;
+        document.getElementById("puzzle-content").innerHTML = html;
+        document.querySelectorAll(".code-fragment").forEach((frag) => {
+          frag.onclick = () => {
+            if (frag.classList.contains("selected")) return;
+            frag.classList.add("selected");
+            const target = document.getElementById("code-target");
+            const clone = frag.cloneNode(true);
+            clone.classList.remove("selected");
+            clone.onclick = null;
+            target.appendChild(clone);
+            state.puzzleData.currentOrder.push(frag.dataset.frag);
+            frag.style.opacity = "0.3";
+            frag.style.pointerEvents = "none";
+            if (state.puzzleData.currentOrder.length === fragmentCount) {
+              if (
+                state.puzzleData.currentOrder.join(",") ===
+                correctOrder.join(",")
+              )
+                successPuzzle();
+              else failPuzzle();
+            }
+          };
+        });
+      }
+
+      document.getElementById("btn-submit-puzzle").onclick = () => {
+        if (!state.puzzleData) return;
+        if (state.puzzleData.type === "binary") {
+          const inputs = document.querySelectorAll("#binary-input-area input");
+          let answer = "";
+          inputs.forEach((inp) => (answer += inp.value));
+          if (answer === state.puzzleData.target) successPuzzle();
+          else failPuzzle();
+        } else if (state.puzzleData.type === "signal") {
+          const diff = Math.abs(
+            state.puzzleData.current - state.puzzleData.target,
+          );
+          if (diff < 5) successPuzzle();
+          else failPuzzle();
+        } else if (state.puzzleData.type === "circuit") {
+          const allAligned = state.puzzleData.cells.every(
+            (c) => c.rotation === 0,
+          );
+          if (allAligned) successPuzzle();
+          else failPuzzle();
+        }
+      };
+
+      function successPuzzle() {
+        clearInterval(state.puzzleTimer);
+        document.getElementById("puzzle-overlay").classList.remove("active");
+        const nodeId = state.activePuzzle;
+        const node = state.nodes[nodeId];
+        node.status = "safe";
+        node.infection = 0;
+        node.isStealth = false;
+        updateNodeElement(nodeId);
+        state.combo++;
+        state.comboMultiplier = 1 + state.combo * 0.1;
+        if (state.comboMultiplier > currentComboMax)
+          currentComboMax = state.comboMultiplier;
+        const points = Math.floor(100 * state.comboMultiplier);
+        state.score += points;
+        state.nodesSaved++;
+        totalDefused++;
+        if (state.puzzleData && state.puzzleData.type === "binary")
+          binaryPuzzleCount++;
+        logToConsole(
+          `> NODE ${nodeId} STABILIZED. +${points} PTS (x${state.comboMultiplier.toFixed(1)})`,
+          "success",
+        );
+        playSound("success");
+        state.health = Math.min(100, state.health + 2);
+        checkAchievements();
+        updateHUD();
+        state.isPaused = false;
+        state.activePuzzle = null;
+        state.selectedNode = null;
+        document.getElementById("btn-defuse").disabled = true;
+        document.getElementById("puzzle-timer").style.animation = "none";
+      }
+
+      function failPuzzle() {
+        clearInterval(state.puzzleTimer);
+        document.getElementById("puzzle-overlay").classList.remove("active");
+        const nodeId = state.activePuzzle;
+        const node = state.nodes[nodeId];
+        node.infection += 30;
+        if (node.infection >= 100) makeCritical(nodeId);
+        else {
+          node.status = "infected";
+          updateNodeElement(nodeId);
+        }
+        state.combo = 0;
+        state.comboMultiplier = 1;
+        state.health -= 5;
+        logToConsole(
+          `> PUZZLE FAILED. NODE ${nodeId} INFECTION INCREASED.`,
+          "crit",
+        );
+        playSound("fail");
+        if (state.health <= 0) endGame(false);
+        updateHUD();
+        state.isPaused = false;
+        state.activePuzzle = null;
+        state.selectedNode = null;
+        document.getElementById("btn-defuse").disabled = true;
+        document.getElementById("puzzle-timer").style.animation = "none";
+      }
+
+      function usePowerup(type) {
+        if (state.powerups[type] <= 0 || !state.isRunning) return;
+        state.powerups[type]--;
+        updatePowerupUI();
+        if (type === "freeze") {
+          state.freezeActive = true;
+          logToConsole(
+            "> FIREWALL FREEZE ACTIVATED. INFECTION HALTED FOR 5s.",
+            "success",
+          );
+          setTimeout(() => {
+            state.freezeActive = false;
+            logToConsole("> FREEZE EXPIRED.", "sys");
+          }, 5000);
+        } else if (type === "scan") {
+          state.scanActive = true;
+          logToConsole(
+            "> SYSTEM SCAN INITIATED. REVEALING HIDDEN THREATS.",
+            "success",
+          );
+          state.nodes.forEach((n, i) => {
+            if (
+              (n.status === "infected" || n.status === "critical") &&
+              n.isStealth
+            ) {
+              const el = document.getElementById(`node-${i}`);
+              el.classList.remove("stealth");
+              el.style.boxShadow = "0 0 20px var(--text-red)";
+              setTimeout(() => (el.style.boxShadow = ""), 3000);
+            }
+          });
+          setTimeout(() => (state.scanActive = false), 3000);
+        } else if (type === "patch") {
+          let target = null,
+            maxInf = 0;
+          state.nodes.forEach((n) => {
+            if (
+              (n.status === "infected" || n.status === "critical") &&
+              n.infection > maxInf
+            ) {
+              maxInf = n.infection;
+              target = n;
+            }
+          });
+          if (target) {
+            target.status = "safe";
+            target.infection = 0;
+            target.isStealth = false;
+            updateNodeElement(target.id);
+            logToConsole(
+              `> EMERGENCY PATCH APPLIED TO NODE ${target.id}.`,
+              "success",
+            );
+            playSound("success");
+          } else logToConsole("> NO INFECTED NODES TO PATCH.", "sys");
+        } else if (type === "overclock") {
+          logToConsole("> OVERCLOCK ACTIVATED. NEXT PUZZLE EASIER.", "success");
+          state.overclock = true;
+          setTimeout(() => {
+            state.overclock = false;
+          }, 15000);
+        }
+      }
+
+      function updatePowerupUI() {
+        document.getElementById("count-freeze").textContent =
+          state.powerups.freeze;
+        document.getElementById("count-scan").textContent = state.powerups.scan;
+        document.getElementById("count-patch").textContent =
+          state.powerups.patch;
+        document.getElementById("count-overclock").textContent =
+          state.powerups.overclock;
+        document
+          .getElementById("pu-freeze")
+          .classList.toggle("disabled", state.powerups.freeze <= 0);
+        document
+          .getElementById("pu-scan")
+          .classList.toggle("disabled", state.powerups.scan <= 0);
+        document
+          .getElementById("pu-patch")
+          .classList.toggle("disabled", state.powerups.patch <= 0);
+        document
+          .getElementById("pu-overclock")
+          .classList.toggle("disabled", state.powerups.overclock <= 0);
+      }
+
+      function unlockAchievement(key) {
+        if (state.achievements[key]) return;
+        state.achievements[key] = true;
+        localStorage.setItem(
+          "hk_zero_achievements",
+          JSON.stringify(state.achievements),
+        );
+        updateAchievementList();
+        showToast(`🏆 ACHIEVEMENT UNLOCKED: ${ACHIEVEMENTS[key].name}`);
+        playSound("success");
+      }
+
+      function checkAchievements() {
+        if (totalDefused >= 1) unlockAchievement("first_firewall");
+        if (totalDefused >= 50) unlockAchievement("virus_hunter");
+        if (binaryPuzzleCount >= 10) unlockAchievement("binary_beast");
+        if (state.comboMultiplier >= 5) unlockAchievement("combo_master");
+        if (state.health >= 100 && state.health < 100)
+          unlockAchievement("network_guardian");
+        if (state.mode === "survival" && state.level >= 10)
+          unlockAchievement("system_overload");
+        if (state.mode === "survival" && Date.now() - state.startTime >= 300000)
+          unlockAchievement("survivor");
+        if (state.nodesLost === 0 && state.mode === "campaign")
+          unlockAchievement("zero_casualties");
+      }
+
+      function updateAchievementList() {
+        const list = document.getElementById("achievement-list");
+        let html = "";
+        for (const [key, ach] of Object.entries(ACHIEVEMENTS)) {
+          const unlocked = state.achievements[key];
+          html += `<div style="opacity:${unlocked ? 1 : 0.4}; display:flex; align-items:center; gap:5px;">
+            <svg style="width:14px;height:14px;fill:${unlocked ? "var(--text-amber)" : "#666"};" viewBox="0 0 24 24">${ach.icon.replace('<svg viewBox="0 0 24 24">', "").replace("</svg>", "")}</svg>
+            ${ach.name}
+        </div>`;
+        }
+        list.innerHTML = html;
+      }
+
+      function showToast(msg) {
+        const toast = document.createElement("div");
+        toast.className = "achievement-toast";
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+
+      function updateHUD() {
+        document.getElementById("hud-score").textContent = String(
+          state.score,
+        ).padStart(5, "0");
+        document.getElementById("hud-health").textContent =
+          `${Math.max(0, state.health)}%`;
+        document.getElementById("hud-level").textContent = state.level;
+        document.getElementById("hud-combo").textContent =
+          `x${state.comboMultiplier.toFixed(1)}`;
+        document.getElementById("network-health-text").textContent =
+          `${Math.max(0, state.health)}%`;
+        const bar = document.getElementById("network-health-bar");
+        bar.style.width = `${Math.max(0, state.health)}%`;
+        if (state.health > 60)
+          bar.style.background =
+            "linear-gradient(90deg, var(--border-pink), #ff8fbb)";
+        else if (state.health > 30)
+          bar.style.background =
+            "linear-gradient(90deg, var(--text-amber), #ff8fbb)";
+        else
+          bar.style.background =
+            "linear-gradient(90deg, var(--text-red), #ff8fbb)";
+        if (state.mode === "survival") {
+          document.getElementById("global-timer").textContent =
+            `LVL ${state.level}`;
+        } else {
+          const mins = Math.floor(state.timeRemaining / 60);
+          const secs = Math.floor(state.timeRemaining % 60);
+          document.getElementById("global-timer").textContent =
+            `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+        if (state.selectedNode !== null) {
+          const node = state.nodes[state.selectedNode];
+          document.getElementById("node-infection").textContent =
+            `${Math.floor(node.infection)}%`;
+        }
+      }
+
+      function logToConsole(msg, type = "sys") {
+        const consoleEl = document.getElementById("console");
+        const div = document.createElement("div");
+        div.className = type;
+        div.textContent = msg;
+        consoleEl.appendChild(div);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+        if (consoleEl.children.length > 50)
+          consoleEl.removeChild(consoleEl.firstChild);
+      }
+
+      let audioCtx = null;
+      function playSound(type) {
+        try {
+          if (!audioCtx)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          if (type === "infect") {
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(
+              80,
+              audioCtx.currentTime + 0.2,
+            );
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioCtx.currentTime + 0.2,
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+          } else if (type === "success") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioCtx.currentTime + 0.3,
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } else if (type === "fail") {
+            osc.type = "square";
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(
+              50,
+              audioCtx.currentTime + 0.3,
+            );
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioCtx.currentTime + 0.3,
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } else if (type === "warn") {
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioCtx.currentTime + 0.3,
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          } else if (type === "beep") {
+            osc.type = "square";
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioCtx.currentTime + 0.1,
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+          }
+        } catch (e) {}
+      }
+
+      function endGame(win) {
+        state.isRunning = false;
+        clearInterval(state.timerInterval);
+        clearInterval(state.infectionInterval);
+        clearInterval(state.puzzleTimer);
+        if (state.score > state.bestScore) {
+          state.bestScore = state.score;
+          localStorage.setItem("hk_zero_best", state.bestScore);
+          document.getElementById("hud-best").textContent = String(
+            state.bestScore,
+          ).padStart(5, "0");
+        }
+        const overlay = document.getElementById("overlay-screen");
+        overlay.style.display = "flex";
+        if (win) {
+          document.getElementById("overlay-title").textContent =
+            "MISSION COMPLETE";
+          document.getElementById("overlay-title").style.color =
+            "var(--text-cyan)";
+          document.getElementById("overlay-desc").textContent =
+            `NETWORK SURVIVED. FINAL SCORE: ${state.score}`;
+          document.getElementById("overlay-sub").textContent =
+            "Excellent work, hacker! The system is safe. ♡";
+        } else {
+          document.getElementById("overlay-title").textContent =
+            "SYSTEM COMPROMISED";
+          document.getElementById("overlay-title").style.color =
+            "var(--text-red)";
+          document.getElementById("overlay-desc").textContent =
+            `NETWORK COLLAPSE. FINAL SCORE: ${state.score}`;
+          document.getElementById("overlay-sub").textContent =
+            "The virus has won. Try again, little hacker. ♡";
+        }
+        document.getElementById("main-menu").style.display = "grid";
+        document.getElementById("btn-start").style.display = "none";
+        document.getElementById("main-menu").innerHTML = `
+        <button class="menu-btn" onclick="startGame('${state.mode}')">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Play Again
+        </button>
+        <button class="menu-btn" onclick="showMainMenu()">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Main Menu
+        </button>
+    `;
+      }
+
+      window.onload = initGame;
+    </script>
+  </body>
+</html>
